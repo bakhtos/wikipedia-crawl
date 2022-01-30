@@ -9,7 +9,7 @@ STOP_CATEGORIES = set([
 def wiki_crawler(start_page=None, max_links=None, limit=False):
     
     if start_page is None: start_page = wiki.random()
-    if max_links is None: max_links = 500
+    if max_links is None: max_links = 5
 
     wiki.set_rate_limiting(limit)
 
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     parser.add_argument("--page", "-p", help="starting page for the crawling"
                         " (defaults to random)")
     parser.add_argument("--links", "-l", help="maximum amount of pages to crawl"
-                        " (defaults to 500)", type=int)
+                        " (defaults to 5)", type=int)
     parser.add_argument("--limit", help="turn on rate-limiting of requests",
                         action="store_true")
     args = parser.parse_args()
