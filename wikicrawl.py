@@ -2,9 +2,6 @@ import argparse
 import wikipedia as wiki
 import pickle
 
-STOP_CATEGORIES = set([
-'All articles with dead external links', 'All pages needing factual verification', 'Articles with BIBSYS identifiers', 'Articles with BNE identifiers', 'Articles with BNF identifiers', 'Articles with CINII identifiers', 'Articles with Curlie links', 'Articles with GND identifiers', 'Articles with ISNI identifiers', 'Articles with LCCN identifiers', 'Articles with MusicBrainz identifiers', 'Articles with NDL identifiers', 'Articles with NKC identifiers', 'Articles with NLA identifiers', 'Articles with NLI identifiers', 'Articles with NSK identifiers', 'Articles with PWN identifiers', 'Articles with SUDOC identifiers', 'Articles with Trove identifiers', 'Articles with VIAF identifiers', 'Articles with WORLDCATID identifiers'
-])
 
 def wiki_crawler(start_page=None, max_links=None, limit=False):
     
@@ -33,7 +30,6 @@ def wiki_crawler(start_page=None, max_links=None, limit=False):
                 continue
             get_links = set(wiki_page.links) - failed_pages
             get_categories = set(wiki_page.categories)
-            get_categories -= STOP_CATEGORIES
             categories[current_page] = get_categories
             if not limit_reached:
                 links[current_page] = get_links
