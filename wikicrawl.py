@@ -17,6 +17,10 @@ def wiki_crawler(start_page=None, max_links=None, limit=False):
     
     # Deal with default parameters
     if start_page is None: start_page = wiki.random()
+    else:
+        try: wiki.page(start_page)
+        except (wiki.exceptions.PageError, wiki.exceptions.DisambiguationError):
+            raise ValueError("The provided page could not be found")
     if max_links is None: max_links = 5
 
     # Set limiting on/off
