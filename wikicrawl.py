@@ -67,8 +67,7 @@ def wiki_crawler(start_page=None, max_links=None, limit=False):
             get_links = set(wiki_page.links) - failed_pages
 
             # Get the categories of the page
-            get_categories = set(wiki_page.categories)
-            categories[current_page] = get_categories
+            categories[current_page] =  set(wiki_page.categories)
             if not limit_reached:
                 # Save all found pages to current page's outgoing links,
                 # add all the found pages to be crawled, 
