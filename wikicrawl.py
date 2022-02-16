@@ -48,6 +48,7 @@ def wiki_crawler(start_page=None, max_links=None, limit=False):
         current_crawl = set()
 
         # Crawl pages that are currently in the queue
+        print("Crawling queue size:", len(crawl_queue))
         for current_page in crawl_queue:
             print("Crawling:",current_page+"...")
 
