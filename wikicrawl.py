@@ -4,6 +4,16 @@ import pickle
 
 
 def wiki_crawler(start_page=None, max_links=None, limit=False):
+    ''' Crawl wikipedia pages' links and categories.
+    Parameters:
+    str start_page: name of the page to crawl
+    int max_links: threshold of pages to crawl (note: it is NOT an absolute
+        maximum amount of pages to crawl, see comments in the end of the while loop)
+    bool limit: whether or not to use the rate limiter provided by wiki package
+    Returns: None
+    Side effects: saves crawled links and categories to pickled dictionaries
+        in the current working directory
+    '''
     
     # Deal with default parameters
     if start_page is None: start_page = wiki.random()
