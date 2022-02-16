@@ -44,13 +44,12 @@ def wiki_crawler(start_page=None, max_links=None, limit=False):
 
     # Crawl the queue
     while len(crawl_queue) != 0:
-        print(crawl_queue)
         # Pages found after crawling  the current queue
         current_crawl = set()
 
         # Crawl pages that are currently in the queue
         for current_page in crawl_queue:
-            print(current_page)
+            print("Crawling:",current_page+"...")
 
             # Get the page with wikipedia package, sometimes it fails even
             # though we are using the names of pages the package itself return,
@@ -60,6 +59,7 @@ def wiki_crawler(start_page=None, max_links=None, limit=False):
             except (wiki.exceptions.PageError, wiki.exceptions.DisambiguationError):
                 # Save page that failed to crawl for later, skip to next page
                 failed_pages.add(current_page)
+                print("\t", current_page, "failed!")
                 continue
 
             # Get all pages linked from crawled page, remove links to 
@@ -109,6 +109,5 @@ if __name__ == '__main__':
     parser.add_argument("--limit", help="turn on rate-limiting of requests",
                         action="store_true")
     args = parser.parse_args()
-    print(args)
     wiki_crawler(args.page, args.links, args.limit)
 
