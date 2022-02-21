@@ -3,6 +3,9 @@ import numpy as np
 
 import pickle
 
+def prune_categories(categories):
+    return categories
+
 
 if __name__ == '__main__':
     # Load data from files
@@ -13,4 +16,5 @@ if __name__ == '__main__':
 
     # Initialize the graph
     G = nx.DiGraph(links)
+    cats = prune_categories(categories)
 
