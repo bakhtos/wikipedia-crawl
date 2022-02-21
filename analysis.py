@@ -5,7 +5,7 @@ import pickle
 import re
 
 def prune_categories(categories, prune_dates=False):
-    """ Remove wikipedia meta-categories from pages' categories.
+    ''' Remove wikipedia meta-categories from pages' categories.
     Parameters:
     dict categories: dictionary of the form str -> set(str) containing
         wikipedia categories for each pages (pages are keys)
@@ -45,4 +45,4 @@ if __name__ == '__main__':
     # Initialize the graph
     G = nx.DiGraph(links)
     # Prune categories
-    cats = prune_categories(categories, True)
+    categories = prune_categories(categories, True)
