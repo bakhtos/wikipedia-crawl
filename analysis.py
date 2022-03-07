@@ -68,6 +68,22 @@ def WS_model(N, k, p):
         G2.add_edge(*edge)
     return G2
 
+def BA_model(N, m):
+    # Make a complete graph
+    G = nx.complete_graph(m)
+    # Add remaining nodes
+    for i in range(m,N):
+        # Create a sorted list of nodes
+        nodes = sorted(G.nodes)
+        # Create a sorted (by node) list of degrees
+        degrees = [val for key,val in sorted(G.degree)]
+        # if we started we one node (m=1), its degree is 0,
+        # but the probability to connect should be 1
+        if degrees == [0]: degrees=[1]
+        js = random.choices(nodes, degrees, k=m)
+        for j in js: G.add_edge(i,j)
+    return G
+
 if __name__ == '__main__':
     # Load data from files
     with open('categories.pickle', 'rb') as file:
