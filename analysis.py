@@ -64,6 +64,21 @@ def prune_categories(categories, prune_dates=False):
 
     return to_return
 
+def make_random_as(G):
+    ''' Create Erdos-Renyi and Barabasi-Albert random graph using given graph G.
+    Parameters:
+    nx.Graph G: Graph whose number of edges and nodes will be used for generation.
+    Return:
+    nx.Graph ER_graph, BA_graph: generated graphs.
+    '''
+    n = len(G.nodes) # number of nodes
+    l = len(G.edges) # number of edges
+    m = int(l/n) # number of edges to add in preferential attachement
+    p = l/(n*(n-1)) # probaility for edge to exist
+    ER_graph = nx.erdos_renyi_graph(n, p, seed=42, directed=True)
+    BA_graph = nx.barabasi_albert_graph(n, m, seed=42)
+    return ER_graph, BA_graph
+
 def WS_model(N, k, p):
     G = nx.Graph()
     # Add N nodes from 0 to N-1
