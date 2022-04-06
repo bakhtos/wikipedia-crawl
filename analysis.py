@@ -88,3 +88,7 @@ if __name__ == '__main__':
 
     # Initialize the graph
     G = nx.DiGraph(links)
+    
+    # Load random graphs
+    BA_graph = nx.read_gpickle("random_BA.pickle")
+    ER_graph = nx.read_gpickle("random_ER.pickle")
