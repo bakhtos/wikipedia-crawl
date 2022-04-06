@@ -4,6 +4,36 @@ import numpy as np
 import pickle
 import re
 
+def prune_pages(links, categories):
+    '''Remove pages dedicated to numbers and identifiers.
+    Parameters:
+    dict links: dictionary of the form str -> set(str), containing links
+        of Wikipedia pages from key to pages in the set.
+    dict categories: dictionary of the form str -> set(str), containing
+        Wikipedia categories for pages.
+    Return:
+    dict new_links: same as links, but all pages with "(number)" and "(identifier)"
+        in the title have been removed both as a key and inside any set.
+    dict categories: same as input categories, but with "(number)" and "(identifier)"
+        pages removed. NOTE: not the copy of input but the same thing, ie
+        original 'categories' gets modified.
+    '''
+    # New links to return
+    new_links = dict()
+    # Loop over links
+    for key in links:
+        if "(identifier)" in key or "(number)" in key:
+            # Remove page from categories also
+            del categories[key]
+        else:
+            new_set = set()
+            for link in links[key]:
+                # Skip unnecessary pages
+                if "(identifier)" in link or "(number)" in link: continue
+                else: new_set.add(link)
+            new_links[key] = new_set
+    return new_links, categories
+
 def prune_categories(categories, prune_dates=False):
     ''' Remove wikipedia meta-categories from pages' categories.
     Parameters:
