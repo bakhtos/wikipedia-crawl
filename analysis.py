@@ -89,9 +89,10 @@ def community_discovery(D):
 
     G = D.to_undirected(as_view=True)
     results = dict()
-
+    '''
     ## K-clique
     comm_kclique = nx.algorithms.community.k_clique_communities(G, k=4)
+    comm_kclique = list(comm_kclique)
     dist_kclique = Counter()
     max_size = 0
     max_kclique = []
@@ -106,6 +107,7 @@ def community_discovery(D):
 
     results["k-clique"] = dict(distribution=dist_clique, communities=comm_clique,
                                maximal_community=max_kclique)
+    '''
     ## Louvain
     print("Staring Louvain...")
     partition = community.best_partition(G)
@@ -119,10 +121,11 @@ def community_discovery(D):
         else:
             comm_louvain[comm_id].add(node)
 
+    comm_louvain = list(comm_louvain.values())
     dist_louvain = Counter()
     max_size = 0
     max_louvain = []
-    for comm in comm_louvain.values():
+    for comm in comm_louvain:
         size = len(comm)
         dist_louvain[size] += 1
         if size > max_size:
@@ -140,8 +143,21 @@ def community_discovery(D):
 
     dm = demon.Demon(graph=G, epsilon=0.25, min_community_size=4)
     comm_demon = dm.execute()
-    print(len(comm_demon))
-    print(comm_demon[0])
+    dist_demon = Counter()
+    max_size = 0
+    max_demon = []
+    for comm in comm_demon:
+        size = len(comm)
+        dist_demon[size] += 1
+        if size > max_size:
+            max_size = size
+            max_demon = [comm]
+        elif size == max_size:
+            max_demon.append(comm)
+    results["demon"] = dict(distribution=dist_demon, communities=comm_demon,
+                              maximal_community=max_demon)
+
+    '''
 
     return results
 
@@ -160,3 +176,4 @@ if __name__ == '__main__':
     ER_graph = nx.read_gpickle("random_ER.pickle")
 
     comms = community_discovery(G)
+    print(comms)
