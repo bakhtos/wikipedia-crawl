@@ -1,4 +1,6 @@
 import networkx as nx
+import community
+import demon
 import numpy as np
 
 import pickle
@@ -104,6 +106,42 @@ def community_discovery(D):
 
     results["k-clique"] = dict(distribution=dist_clique, communities=comm_clique,
                                maximal_community=max_kclique)
+    ## Louvain
+    print("Staring Louvain...")
+    partition = community.best_partition(G)
+    print("Louvain partition found.")
+    modularity_louvain = community.modularity(partition, G)
+    print("Louvain modularity calculated")
+    comm_louvain = dict()
+    for node, comm_id in partition.items():
+        if comm_id not in comm_louvain:
+            comm_louvain[comm_id] = set(node)
+        else:
+            comm_louvain[comm_id].add(node)
+
+    dist_louvain = Counter()
+    max_size = 0
+    max_louvain = []
+    for comm in comm_louvain.values():
+        size = len(comm)
+        dist_louvain[size] += 1
+        if size > max_size:
+            max_size = size
+            max_louvain = [comm]
+        elif size == max_size:
+            max_louvain.append(comm)
+
+    print("Louvain results calculated.")
+    results["louvain"] = dict(distribution=dist_louvain, communities=comm_louvain,
+                              maximal_community=max_louvain)
+
+    '''
+    ## Demon
+
+    dm = demon.Demon(graph=G, epsilon=0.25, min_community_size=4)
+    comm_demon = dm.execute()
+    print(len(comm_demon))
+    print(comm_demon[0])
 
     return results
 
