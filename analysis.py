@@ -3,6 +3,7 @@ import numpy as np
 
 import pickle
 import re
+from collections import Counter
 
 def prune_pages(links, categories):
     '''Remove pages dedicated to numbers and identifiers.
@@ -79,6 +80,33 @@ def make_random_as(G):
     BA_graph = nx.barabasi_albert_graph(n, m, seed=42)
     return ER_graph, BA_graph
 
+def community_discovery(D):
+    ''' Run several community discovery methods.
+    Parameters:
+    nx.DiGraph D: Graph to be studied.'''
+
+    G = D.to_undirected(as_view=True)
+    results = dict()
+
+    ## K-clique
+    comm_kclique = nx.algorithms.community.k_clique_communities(G, k=4)
+    dist_kclique = Counter()
+    max_size = 0
+    max_kclique = []
+    for comm in comm_kclique:
+        size = len(comm)
+        dist_kclique[size] += 1
+        if size > max_size:
+            max_size = size
+            max_kclique = [comm]
+        elif size == max_size:
+            max_kclique.append(comm)
+
+    results["k-clique"] = dict(distribution=dist_clique, communities=comm_clique,
+                               maximal_community=max_kclique)
+
+    return results
+
 if __name__ == '__main__':
     # Load data from files
     with open('categories_clean.pickle', 'rb') as file:
@@ -92,3 +120,5 @@ if __name__ == '__main__':
     # Load random graphs
     BA_graph = nx.read_gpickle("random_BA.pickle")
     ER_graph = nx.read_gpickle("random_ER.pickle")
+
+    comms = community_discovery(G)
