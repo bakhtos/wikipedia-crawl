@@ -89,11 +89,14 @@ def community_discovery(D):
 
     G = D.to_undirected(as_view=True)
     results = dict()
-    '''
+
     ## K-clique
+    print("Staring K-clique...")
     comm_kclique = nx.algorithms.community.k_clique_communities(G, k=4)
     comm_kclique = list(comm_kclique)
+    print("K-cliques found.")
     dist_kclique = Counter()
+    nums_kclique = Counter()
     max_size = 0
     max_kclique = []
     for comm in comm_kclique:
@@ -104,10 +107,13 @@ def community_discovery(D):
             max_kclique = [comm]
         elif size == max_size:
             max_kclique.append(comm)
+        for node in G.nodes():
+            if node in comm: nums_kclique[node] += 1
 
-    results["k-clique"] = dict(distribution=dist_clique, communities=comm_clique,
+    print("K-clique results calculated")
+    results["k-clique"] = dict(size_distribution=dist_clique, communities=comm_clique,
+                               node_participation=nums_kclique,
                                maximal_community=max_kclique)
-    '''
     ## Louvain
     print("Staring Louvain...")
     partition = community.best_partition(G)
@@ -141,9 +147,12 @@ def community_discovery(D):
     '''
     ## Demon
 
+    print("Starting Demon...")
     dm = demon.Demon(graph=G, epsilon=0.25, min_community_size=4)
     comm_demon = dm.execute()
+    print("Demon communities found.")
     dist_demon = Counter()
+    nums_demon = Counter()
     max_size = 0
     max_demon = []
     for comm in comm_demon:
@@ -154,10 +163,13 @@ def community_discovery(D):
             max_demon = [comm]
         elif size == max_size:
             max_demon.append(comm)
-    results["demon"] = dict(distribution=dist_demon, communities=comm_demon,
-                              maximal_community=max_demon)
+        for node in G.nodes():
+            if node in comm: nums_demon[node] += 1
+    print("Demon results calculated.")
 
-    '''
+    results["demon"] = dict(distribution=dist_demon, communities=comm_demon,
+                            node_participation=nums_demon,
+                              maximal_community=max_demon)
 
     return results
 
@@ -176,4 +188,5 @@ if __name__ == '__main__':
     ER_graph = nx.read_gpickle("random_ER.pickle")
 
     comms = community_discovery(G)
-    print(comms)
+    with open('community.pickle', 'wb') as file:
+        pickle.dump(comms, file)
