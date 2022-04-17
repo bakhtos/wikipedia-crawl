@@ -4,6 +4,7 @@ import demon
 import numpy as np
 
 import pickle
+import random
 import re
 from collections import Counter
 
@@ -172,6 +173,49 @@ def community_discovery(D):
 
     return results
 
+
+def spreading(G, p, patient_zero='Mathematics'):
+
+    infection_started = False
+    for node in G.nodes:
+        if node == patient_zero:
+            G.nodes[node]['Infected'] = True
+            G.nodes[node]['Infection_time'] = 0
+            infection_started = True
+        else:
+            G.nodes[node]['Infected'] = False
+            G.nodes[node]['Infection_time'] = None
+
+    if not infection_started:
+        raise ValueError("Patient zero node was not found")
+
+    infection_progress_i = Counter()
+    t = 1
+
+    while True:
+        to_infect = set()
+        for node, adj in G.adjacency():
+            if G.nodes[node]['Infected']:
+                infects = {n for n in adj if not G.nodes[n]['Infected']
+                           and random.random()<p}
+                to_infect.update(infects)
+
+        for node in G.nodes():
+            if node in to_infect:
+                G.nodes[node]['Infected'] = True
+                G.nodes[node]['Infection_time'] = t
+
+        infection_progress_i[t] = len(to_infect)
+        
+        t += 1
+        
+        for edge in G.edges:
+            if G.nodes[edge[0]]['Infected'] and not G.nodes[edge[1]]['Infected']:
+                break
+        else:
+            return infection_progress_i
+                    
+
 if __name__ == '__main__':
     # Load data from files
     with open('categories_clean.pickle', 'rb') as file:
@@ -186,6 +230,9 @@ if __name__ == '__main__':
     BA_graph = nx.read_gpickle("random_BA.pickle")
     ER_graph = nx.read_gpickle("random_ER.pickle")
 
+    '''
     comms = community_discovery(G)
     with open('community.pickle', 'wb') as file:
         pickle.dump(comms, file)
+    '''
+    print(spreading(G, 0.1))
