@@ -257,6 +257,7 @@ def spreading(G, beta=0.05, gamma = 0.1, SIR=False, t_max=1000, patient_zero='Ma
                     
 
 if __name__ == '__main__':
+    ## Data loading
     # Load data from files
     with open('categories_clean.pickle', 'rb') as file:
         categories = pickle.load(file)
@@ -270,11 +271,14 @@ if __name__ == '__main__':
     BA_graph = nx.read_gpickle("random_BA.pickle")
     ER_graph = nx.read_gpickle("random_ER.pickle")
 
+    ## Community discovery
     '''
     comms = community_discovery(G)
     with open('community.pickle', 'wb') as file:
         pickle.dump(comms, file)
     '''
+
+    ## Spreading models
     experiments = [
         (0.01, 0.1, False, 100),
         (0.1, 0.01, False, 100),
