@@ -91,8 +91,8 @@ def community_discovery(D):
     results = dict()
 
     ## K-clique
-    print("Staring K-clique...")
-    comm_kclique = nx.algorithms.community.k_clique_communities(G, k=4)
+    print("Starting K-clique...")
+    comm_kclique = nx.algorithms.community.k_clique_communities(G, k=15)
     comm_kclique = list(comm_kclique)
     print("K-cliques found.")
     dist_kclique = Counter()
@@ -111,11 +111,11 @@ def community_discovery(D):
             if node in comm: nums_kclique[node] += 1
 
     print("K-clique results calculated")
-    results["k-clique"] = dict(size_distribution=dist_clique, communities=comm_clique,
+    results["k-clique"] = dict(size_distribution=dist_kclique, communities=comm_kclique,
                                node_participation=nums_kclique,
                                maximal_community=max_kclique)
     ## Louvain
-    print("Staring Louvain...")
+    print("Starting Louvain...")
     partition = community.best_partition(G)
     print("Louvain partition found.")
     modularity_louvain = community.modularity(partition, G)
@@ -144,7 +144,6 @@ def community_discovery(D):
     results["louvain"] = dict(distribution=dist_louvain, communities=comm_louvain,
                               maximal_community=max_louvain)
 
-    '''
     ## Demon
 
     print("Starting Demon...")
