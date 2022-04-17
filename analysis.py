@@ -174,7 +174,7 @@ def community_discovery(D):
     return results
 
 
-def spreading(G, beta, patient_zero='Mathematics'):
+def spreading(G, beta=0.05, gamma = 0.1, t_max=1000, patient_zero='Mathematics'):
 
     infection_started = False
     for node in G.nodes:
@@ -192,7 +192,7 @@ def spreading(G, beta, patient_zero='Mathematics'):
     infection_progress_i = Counter()
     t = 1
 
-    while True:
+    while t<t_max:
         to_infect = set()
         for node, adj in G.adjacency():
             if G.nodes[node]['Infected']:
@@ -200,20 +200,22 @@ def spreading(G, beta, patient_zero='Mathematics'):
                            and random.random()<beta}
                 to_infect.update(infects)
 
+        infection_progress_i[t] = len(to_infect)
         for node in G.nodes():
             if node in to_infect:
                 G.nodes[node]['Infected'] = True
                 G.nodes[node]['Infection_time'] = t
+            elif G.nodes[node]['Infected'] and random.random() < gamma:
+                G.nodes[node]['Infected'] = False
+                G.nodes[node]['Infection_time'] = None
+                infection_progress_i[t] -= 1
+                
 
-        infection_progress_i[t] = len(to_infect)
+        print(t, infection_progress_i[t])
         
         t += 1
         
-        for edge in G.edges:
-            if G.nodes[edge[0]]['Infected'] and not G.nodes[edge[1]]['Infected']:
-                break
-        else:
-            return infection_progress_i
+    return infection_progress_i
                     
 
 if __name__ == '__main__':
@@ -235,4 +237,4 @@ if __name__ == '__main__':
     with open('community.pickle', 'wb') as file:
         pickle.dump(comms, file)
     '''
-    print(spreading(G, 0.1))
+    print(spreading(G, 0.2, -0.1))
