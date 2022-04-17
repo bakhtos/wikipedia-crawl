@@ -174,7 +174,7 @@ def community_discovery(D):
     return results
 
 
-def spreading(G, p, patient_zero='Mathematics'):
+def spreading(G, beta, patient_zero='Mathematics'):
 
     infection_started = False
     for node in G.nodes:
@@ -197,7 +197,7 @@ def spreading(G, p, patient_zero='Mathematics'):
         for node, adj in G.adjacency():
             if G.nodes[node]['Infected']:
                 infects = {n for n in adj if not G.nodes[n]['Infected']
-                           and random.random()<p}
+                           and random.random()<beta}
                 to_infect.update(infects)
 
         for node in G.nodes():
