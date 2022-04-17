@@ -177,54 +177,76 @@ def community_discovery(D):
 
 
 def spreading(G, beta=0.05, gamma = 0.1, SIR=False, t_max=1000, patient_zero='Mathematics'):
-
+    ''' Simulate SIS/SIR model on a graph.
+    Parameters:
+    nx.DiGraph G: graph to be used in simulation,
+    float beta: infection rate, between 0.0 and 1.0,
+    float gamma: recovery rate, between 0.0 and 1.0,
+    bool SIR: if True, simulate SIR process, else SIS process,
+    int t_max: run simulation until this timestamp,
+    object patient_zero: node to be used as the first infected
+    Returns:
+    Counter infection_progress_s: amount of people turned susceptible at time t
+    Counter infection_progress_i: amount of people turned infected at time t
+    Counter infection_progress_r: amount of people turned recovered at time t
+    Raises:
+    ValueError: if patient_zero was not found in the nodes of the graph
+    '''
+    
+    # Initialize all nodes, find patient_zero
     infection_started = False
     for node in G.nodes:
         if node == patient_zero:
             G.nodes[node]['Infected'] = 'I'
-            G.nodes[node]['Infection_time'] = 0
             infection_started = True
         else:
             G.nodes[node]['Infected'] = 'S'
-            G.nodes[node]['Infection_time'] = None
 
     if not infection_started:
         raise ValueError("Patient zero node was not found")
 
+    # Initialize s,i,r counts at time t=0
     infection_progress_i = Counter()
     infection_progress_s = Counter()
     infection_progress_r = Counter()
     infection_progress_r[0] = 0
     infection_progress_i[0] = 0
     infection_progress_s[0] = len(G.nodes)
+
     t = 1
 
     while t<t_max:
         to_infect = set()
         for node, adj in G.adjacency():
+            # Infected node infects its' neighbours...
             if G.nodes[node]['Infected'] == 'I':
+                # ... if they are susceptible and the chance allows
                 infects = {n for n in adj if G.nodes[n]['Infected'] == 'S'
                            and random.random()<beta}
                 to_infect.update(infects)
 
         infection_progress_i[t] = len(to_infect)
+
         for node in G.nodes():
+            # Infect the nodes
             if node in to_infect:
                 G.nodes[node]['Infected'] = 'I'
-                G.nodes[node]['Infection_time'] = t
                 infection_progress_s[t] -= 1
+            # 'Recover' the nodes with probability gamma
             elif G.nodes[node]['Infected'] == 'I' and random.random() < gamma:
                 if SIR:
+                    # Node is recovered
                     G.nodes[node]['Infected'] = 'R'
                     infection_progress_r[t] += 1
-                    infection_progress_s[t] += 0
                 else:
+                    # Node is susceptible
                     G.nodes[node]['Infected'] = 'S'
                     infection_progress_s[t] += 1
-                G.nodes[node]['Infection_time'] = None
                 infection_progress_i[t] -= 1
 
 
+        # This ensures that there are values in counters for all t's
+        # (otherwise the plots might be cut)
         infection_progress_s[t] += 0
         infection_progress_i[t] += 0
         infection_progress_r[t] += 0
