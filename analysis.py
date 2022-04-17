@@ -89,6 +89,17 @@ def community_discovery(D):
     ''' Run several community discovery methods.
     Parameters:
     nx.DiGraph D: Graph to be studied.'''
+    Returns:
+    dict results: results in a hierarcical order - 
+    keys in results are 'k-clqiue', 'louvain' and 'demon', corresponding
+        to the methods used, in each there is a dictionary with keys:
+        'size_distribution': dict from sizes of communities to their counts
+        'communities': container of sets corresponding to communities
+        'node_participation': dict from nodes to amount of communties they
+            are in (except Louvain, which makes separated communities)
+        'maximal_community: the biggest community discovered
+    '''
+        
 
     G = D.to_undirected(as_view=True)
     results = dict()
