@@ -174,44 +174,54 @@ def community_discovery(D):
     return results
 
 
-def spreading(G, beta=0.05, gamma = 0.1, t_max=1000, patient_zero='Mathematics'):
+def spreading(G, beta=0.05, gamma = 0.1, SIR=False, t_max=1000, patient_zero='Mathematics'):
 
     infection_started = False
     for node in G.nodes:
         if node == patient_zero:
-            G.nodes[node]['Infected'] = True
+            G.nodes[node]['Infected'] = 'I'
             G.nodes[node]['Infection_time'] = 0
             infection_started = True
         else:
-            G.nodes[node]['Infected'] = False
+            G.nodes[node]['Infected'] = 'S'
             G.nodes[node]['Infection_time'] = None
 
     if not infection_started:
         raise ValueError("Patient zero node was not found")
 
     infection_progress_i = Counter()
+    infection_progress_s = Counter()
+    infection_progress_r = Counter()
+    infection_progress_r[0] = 0
+    infection_progress_i[0] = 0
+    infection_progress_s[0] = len(G.nodes)
     t = 1
 
     while t<t_max:
         to_infect = set()
         for node, adj in G.adjacency():
-            if G.nodes[node]['Infected']:
-                infects = {n for n in adj if not G.nodes[n]['Infected']
+            if G.nodes[node]['Infected'] == 'I':
+                infects = {n for n in adj if G.nodes[n]['Infected'] == 'S'
                            and random.random()<beta}
                 to_infect.update(infects)
 
         infection_progress_i[t] = len(to_infect)
         for node in G.nodes():
             if node in to_infect:
-                G.nodes[node]['Infected'] = True
+                G.nodes[node]['Infected'] = 'I'
                 G.nodes[node]['Infection_time'] = t
-            elif G.nodes[node]['Infected'] and random.random() < gamma:
-                G.nodes[node]['Infected'] = False
+            elif G.nodes[node]['Infected'] == 'I' and random.random() < gamma:
+                if SIR:
+                    G.nodes[node]['Infected'] = 'R'
+                    infection_progress_r[t] += 1
+                else:
+                    G.nodes[node]['Infected'] = 'S'
+                    infection_progress_s[t] += 1
                 G.nodes[node]['Infection_time'] = None
                 infection_progress_i[t] -= 1
                 
 
-        print(t, infection_progress_i[t])
+        print(t, infection_progress_i[t], infection_progress_r[t])
         
         t += 1
         
@@ -237,4 +247,4 @@ if __name__ == '__main__':
     with open('community.pickle', 'wb') as file:
         pickle.dump(comms, file)
     '''
-    print(spreading(G, 0.2, -0.1))
+    print(spreading(G, 0.1, 0.2, SIR=True))
