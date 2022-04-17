@@ -2,6 +2,8 @@ import networkx as nx
 import community
 import demon
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
 import pickle
 import random
@@ -210,22 +212,26 @@ def spreading(G, beta=0.05, gamma = 0.1, SIR=False, t_max=1000, patient_zero='Ma
             if node in to_infect:
                 G.nodes[node]['Infected'] = 'I'
                 G.nodes[node]['Infection_time'] = t
+                infection_progress_s[t] -= 1
             elif G.nodes[node]['Infected'] == 'I' and random.random() < gamma:
                 if SIR:
                     G.nodes[node]['Infected'] = 'R'
                     infection_progress_r[t] += 1
+                    infection_progress_s[t] += 0
                 else:
                     G.nodes[node]['Infected'] = 'S'
                     infection_progress_s[t] += 1
                 G.nodes[node]['Infection_time'] = None
                 infection_progress_i[t] -= 1
-                
 
-        print(t, infection_progress_i[t], infection_progress_r[t])
-        
+
+        infection_progress_s[t] += 0
+        infection_progress_i[t] += 0
+        infection_progress_r[t] += 0
+                
         t += 1
         
-    return infection_progress_i
+    return infection_progress_s,infection_progress_i,infection_progress_r
                     
 
 if __name__ == '__main__':
@@ -247,4 +253,24 @@ if __name__ == '__main__':
     with open('community.pickle', 'wb') as file:
         pickle.dump(comms, file)
     '''
-    print(spreading(G, 0.1, 0.2, SIR=True))
+    experiments = [
+        (0.01, 0.1, False, 100),
+        (0.1, 0.01, False, 100),
+        (0.01, 0.1, True, 100),
+        (0.1, 0.01, True, 100)
+    ]
+    for beta, gamma, SIR, t_max in experiments:
+        s,i,r = spreading(G, beta=beta, gamma=gamma, SIR=SIR, t_max=t_max)
+        s = pd.Series(s).sort_index()
+        s.cumsum().plot(logy=False, marker='.')
+        i = pd.Series(i).sort_index()
+        i.cumsum().plot(logy=False, marker='.')
+        if SIR:
+            r = pd.Series(r).sort_index()
+            r.cumsum().plot(logy=False, marker='.')
+            plt.legend(['S', 'I', 'R'])
+            plt.title(f"SIR process with inf. rate = {beta}, rec. rate = {gamma}")
+        else:
+            plt.legend(['S', 'I'])
+            plt.title(f"SIS process with inf. rate = {beta}, rec. rate = {gamma}")
+        plt.show()
