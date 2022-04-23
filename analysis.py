@@ -275,8 +275,9 @@ def spreading_experiment(G, name, beta, gamma, SIR, t_max, n_max):
     s_av = Counter()
     i_av = Counter()
     r_av = Counter()
+    patient_zero = "Mathematics" if name=="wiki" else 1
     for n in range(n_max):
-        s,i,r = spreading(G, beta=beta, gamma=gamma, SIR=SIR, t_max=t_max)
+        s,i,r = spreading(G, beta=beta, gamma=gamma, SIR=SIR, t_max=t_max, patient_zero=patient_zero)
         for key in s:
             s_av[key] += s[key]
         for key in i:
@@ -321,7 +322,7 @@ if __name__ == '__main__':
         links = pickle.load(file)
 
     # Initialize the graph
-    G = nx.DiGraph(links)
+    wiki = nx.DiGraph(links)
     
     # Load random graphs
     BA_graph = nx.read_gpickle("random_BA.pickle")
@@ -330,7 +331,7 @@ if __name__ == '__main__':
     '''
     ## Community discovery (takes long to run, results were examined manually 
     #                       through a shell)
-    comms = community_discovery(G)
+    comms = community_discovery(wiki)
     with open('community.pickle', 'wb') as file:
         pickle.dump(comms, file)
     '''
@@ -343,4 +344,5 @@ if __name__ == '__main__':
         (0.05, 0.01, True, 100, 10)
     ]
     for beta, gamma, SIR, t_max, n_max in experiments:
-        spreading_experiment(G, 'wiki', beta, gamma, SIR, t_max, n_max)
+        for G, name in ((wiki, "wiki"), (BA_graph, "BA"), (ER_graph, "ER")):
+            spreading_experiment(G, name, beta, gamma, SIR, t_max, n_max)
