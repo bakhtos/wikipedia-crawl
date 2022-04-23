@@ -88,7 +88,7 @@ def make_random_as(G):
 def community_discovery(D):
     ''' Run several community discovery methods.
     Parameters:
-    nx.DiGraph D: Graph to be studied.'''
+    nx.DiGraph D: Graph to be studied.
     Returns:
     dict results: results in a hierarcical order - 
     keys in results are 'k-clqiue', 'louvain' and 'demon', corresponding
@@ -97,6 +97,7 @@ def community_discovery(D):
         'communities': container of sets corresponding to communities
         'node_participation': dict from nodes to amount of communties they
             are in (except Louvain, which makes separated communities)
+        'modularity': value of the modularity of partition (Louvain only)
         'maximal_community: the biggest community discovered
     '''
         
@@ -155,34 +156,38 @@ def community_discovery(D):
             max_louvain.append(comm)
 
     print("Louvain results calculated.")
-    results["louvain"] = dict(distribution=dist_louvain, communities=comm_louvain,
-                              maximal_community=max_louvain)
+    results["louvain"] = dict(size_distribution=dist_louvain, communities=comm_louvain,
+                              modularity=modularity_louvain, maximal_community=max_louvain)
 
     ## Demon
 
     print("Starting Demon...")
-    dm = demon.Demon(graph=G, epsilon=0.25, min_community_size=4)
-    comm_demon = dm.execute()
-    print("Demon communities found.")
-    dist_demon = Counter()
-    nums_demon = Counter()
-    max_size = 0
-    max_demon = []
-    for comm in comm_demon:
-        size = len(comm)
-        dist_demon[size] += 1
-        if size > max_size:
-            max_size = size
-            max_demon = [comm]
-        elif size == max_size:
-            max_demon.append(comm)
-        for node in G.nodes():
-            if node in comm: nums_demon[node] += 1
+    results_demon = dict()
+    for epsilon in [0.25, 0.5, 0.75]:
+        print("Calculating Demon for epsilon =", epsilon)
+        dm = demon.Demon(graph=G, epsilon=epsilon, min_community_size=4)
+        comm_demon = dm.execute()
+        print("Demon communities found.")
+        dist_demon = Counter()
+        nums_demon = Counter()
+        max_size = 0
+        max_demon = []
+        for comm in comm_demon:
+            size = len(comm)
+            dist_demon[size] += 1
+            if size > max_size:
+                max_size = size
+                max_demon = [comm]
+            elif size == max_size:
+                max_demon.append(comm)
+            for node in G.nodes():
+                if node in comm: nums_demon[node] += 1
+        results_demon[epsilon] =dict(size_distribution=dist_demon, communities=comm_demon,
+                                    node_participation=nums_demon,
+                                    maximal_community=max_demon)
     print("Demon results calculated.")
 
-    results["demon"] = dict(distribution=dist_demon, communities=comm_demon,
-                            node_participation=nums_demon,
-                              maximal_community=max_demon)
+    results["demon"] = results_demon 
 
     return results
 
@@ -282,8 +287,9 @@ if __name__ == '__main__':
     BA_graph = nx.read_gpickle("random_BA.pickle")
     ER_graph = nx.read_gpickle("random_ER.pickle")
 
-    ## Community discovery
     '''
+    ## Community discovery (takes long to run, results were examined manually 
+    #                       through a shell)
     comms = community_discovery(G)
     with open('community.pickle', 'wb') as file:
         pickle.dump(comms, file)
@@ -291,23 +297,47 @@ if __name__ == '__main__':
 
     ## Spreading models
     experiments = [
-        (0.01, 0.1, False, 100),
-        (0.1, 0.01, False, 100),
-        (0.01, 0.1, True, 100),
-        (0.1, 0.01, True, 100)
+        (0.01, 0.05, False, 100, 10),
+        (0.05, 0.01, False, 100, 10),
+        (0.01, 0.05, True, 100, 10),
+        (0.05, 0.01, True, 100, 10)
     ]
-    for beta, gamma, SIR, t_max in experiments:
-        s,i,r = spreading(G, beta=beta, gamma=gamma, SIR=SIR, t_max=t_max)
-        s = pd.Series(s).sort_index()
-        s.cumsum().plot(logy=False, marker='.')
-        i = pd.Series(i).sort_index()
-        i.cumsum().plot(logy=False, marker='.')
+    for beta, gamma, SIR, t_max, n_max in experiments:
+        s_av = Counter()
+        i_av = Counter()
+        r_av = Counter()
+        for n in range(n_max):
+            s,i,r = spreading(G, beta=beta, gamma=gamma, SIR=SIR, t_max=t_max)
+            for key in s:
+                s_av[key] += s[key]
+            for key in i:
+                i_av[key] += i[key]
+            for key in r:
+                r_av[key] += r[key]
+
+        norm_const = len(G.nodes)*n_max
+        for key in s_av:
+            s_av[key] /= norm_const
+
+        for key in i_av:
+            i_av[key] /= norm_const
         if SIR:
-            r = pd.Series(r).sort_index()
-            r.cumsum().plot(logy=False, marker='.')
+            for key in r_av:
+                r_av[key] /= norm_const
+            
+        fig  = plt.figure()
+        s_av = pd.Series(s_av).sort_index()
+        s_av.cumsum().plot(logy=False, marker='.')
+        i_av = pd.Series(i_av).sort_index()
+        i_av.cumsum().plot(logy=False, marker='.')
+        if SIR:
+            r_av = pd.Series(r_av).sort_index()
+            r_av.cumsum().plot(logy=False, marker='.')
             plt.legend(['S', 'I', 'R'])
             plt.title(f"SIR process with inf. rate = {beta}, rec. rate = {gamma}")
         else:
             plt.legend(['S', 'I'])
             plt.title(f"SIS process with inf. rate = {beta}, rec. rate = {gamma}")
-        plt.show()
+        fig_name = "SIR" if SIR else "SIS"
+        fig_name += ("_beta_"+str(beta)+"_gamma_"+str(gamma)+"_tmax_"+str(t_max)+"_nmax_"+str(n_max)+".png")
+        plt.savefig(fig_name)
