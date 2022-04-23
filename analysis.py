@@ -271,6 +271,45 @@ def spreading(G, beta=0.05, gamma = 0.1, SIR=False, t_max=1000, patient_zero='Ma
         
     return infection_progress_s,infection_progress_i,infection_progress_r
                     
+def spreading_experiment(G, beta, gamma, SIR, t_max, n_max):
+    s_av = Counter()
+    i_av = Counter()
+    r_av = Counter()
+    for n in range(n_max):
+        s,i,r = spreading(G, beta=beta, gamma=gamma, SIR=SIR, t_max=t_max)
+        for key in s:
+            s_av[key] += s[key]
+        for key in i:
+            i_av[key] += i[key]
+        for key in r:
+            r_av[key] += r[key]
+
+    norm_const = len(G.nodes)*n_max
+    for key in s_av:
+        s_av[key] /= norm_const
+
+    for key in i_av:
+        i_av[key] /= norm_const
+    if SIR:
+        for key in r_av:
+            r_av[key] /= norm_const
+        
+    fig  = plt.figure()
+    s_av = pd.Series(s_av).sort_index()
+    s_av.cumsum().plot(logy=False, marker='.')
+    i_av = pd.Series(i_av).sort_index()
+    i_av.cumsum().plot(logy=False, marker='.')
+    if SIR:
+        r_av = pd.Series(r_av).sort_index()
+        r_av.cumsum().plot(logy=False, marker='.')
+        plt.legend(['S', 'I', 'R'])
+        plt.title(f"SIR process with inf. rate = {beta}, rec. rate = {gamma}")
+    else:
+        plt.legend(['S', 'I'])
+        plt.title(f"SIS process with inf. rate = {beta}, rec. rate = {gamma}")
+    fig_name = "SIR" if SIR else "SIS"
+    fig_name += ("_beta_"+str(beta)+"_gamma_"+str(gamma)+"_tmax_"+str(t_max)+"_nmax_"+str(n_max)+".png")
+    plt.savefig(fig_name)
 
 if __name__ == '__main__':
     ## Data loading
@@ -303,41 +342,4 @@ if __name__ == '__main__':
         (0.05, 0.01, True, 100, 10)
     ]
     for beta, gamma, SIR, t_max, n_max in experiments:
-        s_av = Counter()
-        i_av = Counter()
-        r_av = Counter()
-        for n in range(n_max):
-            s,i,r = spreading(G, beta=beta, gamma=gamma, SIR=SIR, t_max=t_max)
-            for key in s:
-                s_av[key] += s[key]
-            for key in i:
-                i_av[key] += i[key]
-            for key in r:
-                r_av[key] += r[key]
-
-        norm_const = len(G.nodes)*n_max
-        for key in s_av:
-            s_av[key] /= norm_const
-
-        for key in i_av:
-            i_av[key] /= norm_const
-        if SIR:
-            for key in r_av:
-                r_av[key] /= norm_const
-            
-        fig  = plt.figure()
-        s_av = pd.Series(s_av).sort_index()
-        s_av.cumsum().plot(logy=False, marker='.')
-        i_av = pd.Series(i_av).sort_index()
-        i_av.cumsum().plot(logy=False, marker='.')
-        if SIR:
-            r_av = pd.Series(r_av).sort_index()
-            r_av.cumsum().plot(logy=False, marker='.')
-            plt.legend(['S', 'I', 'R'])
-            plt.title(f"SIR process with inf. rate = {beta}, rec. rate = {gamma}")
-        else:
-            plt.legend(['S', 'I'])
-            plt.title(f"SIS process with inf. rate = {beta}, rec. rate = {gamma}")
-        fig_name = "SIR" if SIR else "SIS"
-        fig_name += ("_beta_"+str(beta)+"_gamma_"+str(gamma)+"_tmax_"+str(t_max)+"_nmax_"+str(n_max)+".png")
-        plt.savefig(fig_name)
+        spreading_experiment(G, beta, gamma, SIR, t_max, n_max)
