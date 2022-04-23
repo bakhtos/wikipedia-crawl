@@ -271,7 +271,7 @@ def spreading(G, beta=0.05, gamma = 0.1, SIR=False, t_max=1000, patient_zero='Ma
         
     return infection_progress_s,infection_progress_i,infection_progress_r
                     
-def spreading_experiment(G, beta, gamma, SIR, t_max, n_max):
+def spreading_experiment(G, name, beta, gamma, SIR, t_max, n_max):
     s_av = Counter()
     i_av = Counter()
     r_av = Counter()
@@ -303,11 +303,12 @@ def spreading_experiment(G, beta, gamma, SIR, t_max, n_max):
         r_av = pd.Series(r_av).sort_index()
         r_av.cumsum().plot(logy=False, marker='.')
         plt.legend(['S', 'I', 'R'])
-        plt.title(f"SIR process with inf. rate = {beta}, rec. rate = {gamma}")
+        plt.title(f"({name}) SIR process with inf. rate = {beta}, rec. rate = {gamma}")
     else:
         plt.legend(['S', 'I'])
-        plt.title(f"SIS process with inf. rate = {beta}, rec. rate = {gamma}")
-    fig_name = "SIR" if SIR else "SIS"
+        plt.title(f"({name}) SIS process with inf. rate = {beta}, rec. rate = {gamma}")
+    fig_name = name
+    fig_name += "SIR" if SIR else "SIS"
     fig_name += ("_beta_"+str(beta)+"_gamma_"+str(gamma)+"_tmax_"+str(t_max)+"_nmax_"+str(n_max)+".png")
     plt.savefig(fig_name)
 
@@ -342,4 +343,4 @@ if __name__ == '__main__':
         (0.05, 0.01, True, 100, 10)
     ]
     for beta, gamma, SIR, t_max, n_max in experiments:
-        spreading_experiment(G, beta, gamma, SIR, t_max, n_max)
+        spreading_experiment(G, 'wiki', beta, gamma, SIR, t_max, n_max)
