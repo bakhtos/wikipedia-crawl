@@ -272,12 +272,31 @@ def spreading(G, beta=0.05, gamma = 0.1, SIR=False, t_max=1000, patient_zero='Ma
     return infection_progress_s,infection_progress_i,infection_progress_r
                     
 def spreading_experiment(G, name, beta, gamma, SIR, t_max, n_max):
+    '''Carry out simulations of spreading processes and plot results.
+    Parameters:
+    nx.Graph G - graph to simulate the spreading process,
+    str name - name of the graph to be used in plots,
+    float beta - infection rate of the process,
+    float gamma - recovery rate of the process,
+    bool SIR - if True, simulate SIR process, otherwise SIS,
+    int t_max - maximum number of timesteps to simulate,
+    int n_max - number of simulations to perform for averaging
+    Returns:
+    None, figure of the average simulation process is saved to disk
+    '''
+    
     s_av = Counter()
     i_av = Counter()
     r_av = Counter()
+
+    # First infected node is Mathematics for wiki network and 1 for random
     patient_zero = "Mathematics" if name=="wiki" else 1
+
+    # Carry out n_max experiments
     for n in range(n_max):
         s,i,r = spreading(G, beta=beta, gamma=gamma, SIR=SIR, t_max=t_max, patient_zero=patient_zero)
+        # Update values in s, i, r counters, looping is necessary
+        # since Python summation operator would ignore negative counts
         for key in s:
             s_av[key] += s[key]
         for key in i:
@@ -285,17 +304,20 @@ def spreading_experiment(G, name, beta, gamma, SIR, t_max, n_max):
         for key in r:
             r_av[key] += r[key]
 
+    # Normalize by population and by amount of experiments
     norm_const = len(G.nodes)*n_max
     for key in s_av:
         s_av[key] /= norm_const
-
     for key in i_av:
         i_av[key] /= norm_const
     if SIR:
         for key in r_av:
             r_av[key] /= norm_const
-        
+
+    # Make a new figure
     fig  = plt.figure()
+
+    # Take cumulative sums of s,i,r and add to figure
     s_av = pd.Series(s_av).sort_index()
     s_av.cumsum().plot(logy=False, marker='.')
     i_av = pd.Series(i_av).sort_index()
@@ -308,6 +330,8 @@ def spreading_experiment(G, name, beta, gamma, SIR, t_max, n_max):
     else:
         plt.legend(['S', 'I'])
         plt.title(f"({name}) SIS process with inf. rate = {beta}, rec. rate = {gamma}")
+
+    # Create the figure/file name, containing the name of the network and all parameters
     fig_name = name
     fig_name += "SIR" if SIR else "SIS"
     fig_name += ("_beta_"+str(beta)+"_gamma_"+str(gamma)+"_tmax_"+str(t_max)+"_nmax_"+str(n_max)+".png")
