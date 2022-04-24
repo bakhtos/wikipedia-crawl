@@ -338,10 +338,10 @@ if __name__ == '__main__':
 
     ## Spreading models
     experiments = [
-        (0.01, 0.05, False, 100, 10),
-        (0.05, 0.01, False, 100, 10),
-        (0.01, 0.05, True, 100, 10),
-        (0.05, 0.01, True, 100, 10)
+        (0.01, 0.05, False, 100, 100),
+        (0.05, 0.01, False, 100, 100),
+        (0.01, 0.05, True, 100, 100),
+        (0.05, 0.01, True, 100, 100)
     ]
     for beta, gamma, SIR, t_max, n_max in experiments:
         for G, name in ((wiki, "wiki"), (BA_graph, "BA"), (ER_graph, "ER")):
